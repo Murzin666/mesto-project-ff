@@ -1,8 +1,6 @@
 export { addCard, deleteCard, changeLike };
-import {cardTemplate, imageModalWindow} from '../scripts/index.js';
 
-
-function addCard(cardData, callback, callbackLike, callbackModalWindow) {
+function addCard(cardData, callback, callbackLike, cardTemplate, callbackModalWindow) {
     const cardElement = cardTemplate.querySelector('.places__item').cloneNode(true);
     const cardImage = cardElement.querySelector('.card__image');
     cardImage.src = cardData.link; 
@@ -10,7 +8,7 @@ function addCard(cardData, callback, callbackLike, callbackModalWindow) {
     cardElement.querySelector('.card__title').textContent = cardData.name;
     cardElement.querySelector('.card__delete-button').addEventListener('click', () => callback(cardElement));
     cardElement.querySelector('.card__like-button').addEventListener('click', () => callbackLike(cardElement));
-    cardImage.addEventListener('click', () => callbackModalWindow(imageModalWindow, cardData));
+    cardImage.addEventListener('click', () => callbackModalWindow(cardData));
     return cardElement;
   };
   
