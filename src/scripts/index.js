@@ -31,6 +31,7 @@ const configValidation = {
 };
 const photoAuthor = document.querySelector('.profile__image');
 const authorPopup = document.querySelector('.popup_type_profile_edit');
+let userId = null;
 
 editButton.addEventListener('click', () => editProfile(profilePopup));
 addButton.addEventListener('click', () => openModal(cardPopup));
@@ -41,45 +42,39 @@ formAuthorElement.addEventListener('submit', editAvatar);
 
 function handleEditFormSubmit(evt) {
   evt.preventDefault(); 
-  const saveButton = formEditElement.querySelector('.popup__button');
-  renderLoading(true, saveButton);
+  renderLoading(true, evt.submitter);
   const nameInput = formEditElement.elements.name;
   const jobInput = formEditElement.elements.description;
-  nameAuthor.textContent = nameInput.value;
-  descAuthor.textContent = jobInput.value;
-  handleServerProfile(nameAuthor.textContent, descAuthor.textContent)
-    .then(() => {
-      renderLoading(false, saveButton);
+  handleServerProfile(nameInput.value, jobInput.value)
+    .then((res) => {
+      nameAuthor.textContent = res.name;
+      descAuthor.textContent = res.about;
+      closeModal(profilePopup);
     })
     .catch((error) => {
       console.log(error);
-    }); 
-  closeModal(profilePopup);
+    })
+    .finally(() => renderLoading(false, evt.submitter));
 }
 
 function handleAddFormSubmit(evt) {
   evt.preventDefault(); 
-  const saveButton = formAddElement.querySelector('.popup__button');
-  renderLoading(true, saveButton);
+  renderLoading(true, evt.submitter);
   const item = {};
   item.name =  formAddElement.elements['place-name'].value;
   item.link = formAddElement.elements.link.value;
-  item.likes = [];
-  item.owner = {};
-  Promise.all([handleServerAddFormSubmit(item), getInfoUser()])
-    .then(([resultServerAddFormSubmit, resultInfoUser]) => {
-      item.owner._id = resultInfoUser._id
-      item._id = resultServerAddFormSubmit._id;
-      const listCard = addCard(item, deleteCardServer, changeLikeServer, cardTemplate, openImage, resultInfoUser);
+  handleServerAddFormSubmit(item)
+    .then((resultServerAddFormSubmit) => {
+      const listCard = addCard(resultServerAddFormSubmit, deleteCardServer, changeLikeServer, cardTemplate, openImage, userId);
       cardContainer.prepend(listCard); 
-      renderLoading(false, saveButton);
+      formAddElement.reset();
+      evt.submitter.classList.add(configValidation.inactiveButtonClass);
+      closeModal(cardPopup);
     })
     .catch((error) => {
       console.log(error);
-    }); 
-  closeModal(cardPopup);
-  formAddElement.reset();
-  clearValidation(formAddElement, configValidation);
+    })
+    .finally(() => renderLoading(false, evt.submitter));
 }
 
 allPopup.forEach(function (item) {
@@ -113,8 +108,9 @@ enableValidation(configValidation);
 
 Promise.all([getInitialCards(), getInfoUser()])
   .then(([resultInitialCards, resultInfoUser]) => {
+    userId = resultInfoUser._id;
     resultInitialCards.forEach(function (item) {
-      const listCard = addCard(item, deleteCardServer, changeLikeServer, cardTemplate, openImage, resultInfoUser);
+      const listCard = addCard(item, deleteCardServer, changeLikeServer, cardTemplate, openImage, resultInfoUser._id);
       cardContainer.append(listCard);
     });
     nameAuthor.textContent = resultInfoUser.name;
@@ -135,12 +131,11 @@ function deleteCardServer(cardElement, idCard) {
     }); 
 };
 
-function changeLikeServer(cardElement, cardDataServer, likeCount, resultInfoUser) {
-  likeFormSubmit(cardDataServer, resultInfoUser)
+function changeLikeServer(cardElement, cardData, likeCount, configMethod) {
+  likeFormSubmit(cardData, configMethod)
     .then((res) => {
-    likeCount.textContent = res.likes.length;
-    cardDataServer.likes = res.likes;
-    changeLike(cardElement) 
+    cardData.likes = res.likes;
+    changeLike(cardElement, likeCount, res); 
     })
     .catch((error) => {
       console.log(error);
@@ -149,20 +144,19 @@ function changeLikeServer(cardElement, cardDataServer, likeCount, resultInfoUser
 
 function editAvatar(evt) {
   evt.preventDefault(); 
-  const saveButton = formAuthorElement.querySelector('.popup__button');
   const urlInput = formAuthorElement.elements['avatar-link'].value;
-  renderLoading(true, saveButton);
+  renderLoading(true, evt.submitter);
   handleAuthorProfile(urlInput)
     .then((res) => {
       photoAuthor.style.backgroundImage = `url("${res.avatar}")`;
-      renderLoading(false, saveButton);
+      formAuthorElement.reset();
+      evt.submitter.classList.add(configValidation.inactiveButtonClass);
+      closeModal(authorPopup);
     })
     .catch((error) => {
       console.log(error);
-    }); 
-  closeModal(authorPopup);
-  formAuthorElement.reset();
-  clearValidation(formAuthorElement, configValidation);
+    })
+    .finally(() => renderLoading(false, evt.submitter));
 };
 
 function renderLoading(isLoading, saveButton) {

@@ -25,9 +25,7 @@ const clearValidation = (formElement, validationConfig) => {
 }
 
 const checkInputValidity = (validationConfig, formElement, inputElement) => {
-  if (inputElement.value.length === 0) {
-  inputElement.setCustomValidity('Вы пропустили это поле.');
-  } else if (inputElement.validity.patternMismatch) {
+  if (inputElement.validity.patternMismatch) {
   inputElement.setCustomValidity(inputElement.dataset.errorMessage);
   } else  {
   inputElement.setCustomValidity("");
@@ -68,10 +66,5 @@ const setEventListeners = (validationConfig, formElement) => {
 
 const enableValidation = (validationConfig) => {
   const formList = Array.from(document.querySelectorAll(validationConfig.formSelector));
-  formList.forEach((formElement) => {
-    formElement.addEventListener('submit', function (evt) {
-      evt.preventDefault();
-    });
-    setEventListeners(validationConfig, formElement);
-  });
+  formList.forEach((formElement) => setEventListeners(validationConfig, formElement));
 };
