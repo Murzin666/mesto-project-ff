@@ -20,3 +20,17 @@
     line-height: 15px;
   }
 }
+
+.popup__input_type_error {
+  border-bottom-color: red;
+}
+
+.popup__error_visible {
+  flex-shrink: 0;
+  color: #F00;
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
